@@ -1,0 +1,13 @@
+# Publish ONLY what the planner needs to run online.
+# The planner HTML is fully self-contained (tile data + icons embedded),
+# so nothing else is required at runtime. Everything else — pipeline,
+# source maps, icons, raw data, backups, the editor — stays local.
+
+# ignore everything at the repo root...
+/*
+
+# ...then re-include just what gets published
+!/index.html
+!/crater_planner.html
+!/README.md
+!/.gitignore
