@@ -8,6 +8,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-famil
 #app{display:flex;height:100vh}
 #side{width:314px;min-width:314px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow-y:auto}
 #topbar{position:sticky;top:0;z-index:6;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 3px 7px rgba(0,0,0,0.28)}
+#botbar{background:var(--panel);border-top:1px solid var(--line);padding:8px 16px}
 #side h1{font-size:16px;margin:0;padding:16px 16px 2px;letter-spacing:2px}
 #side .sub{color:var(--muted);font-size:12px;padding:0 16px 12px}
 .sec{padding:12px 16px;border-top:1px solid var(--line)}
@@ -32,7 +33,7 @@ svg{display:block;cursor:grab}svg.drag{cursor:grabbing}
 #tip{position:absolute;pointer-events:none;background:#0d1116ee;border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;display:none;z-index:5;white-space:nowrap}
 #tip b{color:var(--accent)}
 .hint{color:var(--muted);font-size:11px;padding:8px 0 0;line-height:1.5}
-.selinfo{font-size:13px;line-height:1.7}.selinfo .k{color:var(--muted)}
+.selinfo{font-size:13px;line-height:1.7;height:168px;overflow-y:auto}.selinfo .k{color:var(--muted)}
 #zoombtns{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px}
 #zoombtns button{width:34px;height:34px;font-size:18px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:7px;cursor:pointer}
 .pbtn{display:flex;align-items:center;gap:7px;text-align:left;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 8px;cursor:pointer;font-size:12.5px}
@@ -53,10 +54,9 @@ svg{display:block;cursor:grab}svg.drag{cursor:grabbing}
 </style></head><body>
 <div id="app">
  <div id="side">
+  <div id="topbar">
   <h1>CRATER</h1>
   <div class="sub">Notmyname's Frostpunk 2 Planner &middot; <span id="ncells"></span> tiles</div>
-  <div id="topbar">
-  <div style="padding:4px 16px 10px"><select id="mapSel" style="width:100%;padding:7px 8px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;font-size:13px"><option value="crater_planner.html" selected>Crater</option></select></div>
   <div class="sec"><h2>Selection</h2><div id="selinfo" class="selinfo"><span class="k">Hover or click a tile.</span></div></div>
   </div>
   <div class="sec col" data-only="planner"><h2>Districts</h2>
@@ -127,6 +127,7 @@ svg{display:block;cursor:grab}svg.drag{cursor:grabbing}
    <input type="file" id="impFile" accept=".json,application/json" style="display:none">
    <button class="btn red" id="resetPlan">Reset plan</button>
   </div>
+  <div id="botbar"><select id="mapSel" style="width:100%;padding:7px 8px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;font-size:13px"><option value="crater_planner.html" selected>Crater</option></select></div>
  </div>
  <div id="mapwrap">
   <div id="mapscroll"><svg id="map" xmlns="http://www.w3.org/2000/svg"></svg></div>
@@ -252,26 +253,24 @@ function countByKind(){const c={d:0,h:0,f:0};msel.forEach(x=>c[x.k]++);const par
 function showDistrictPanel(did){selectedDid=did;const d=districts[did];
  let h=`<div><b style="color:${dtype(d.type).c}">${dtype(d.type).n}</b> district &mdash; ${d.tiles.length} tiles</div>`+(heatOn?`<div>${heatLine(did)}</div>`:'');
  if(d.tiles.length===6)h+=`<button class="btn" id="selExpand" style="margin-top:6px">Expand to 9 tiles</button>`;
- h+=`<button class="btn red" id="selDelete">Delete district</button><button class="btn" id="selDeselect">Deselect</button>`;
+ h+=SELHINT;
  document.getElementById('selinfo').innerHTML=h;
- const eb=document.getElementById('selExpand');if(eb)eb.onclick=()=>startExpand(did);
- document.getElementById('selDelete').onclick=deleteSelection;document.getElementById('selDeselect').onclick=clearSelection;}
+ const eb=document.getElementById('selExpand');if(eb)eb.onclick=()=>startExpand(did);}
 function startExpand(did){const d=districts[did];if(!d||d.tiles.length!==6)return;expanding={did:did,added:new Set()};msel.length=0;drawMsel();document.getElementById('selinfo').innerHTML='<span class="k">Expanding &mdash; click adjacent tiles.</span>';updateExpandStatus();}
 function showFactionPanel(fid){selFid=fid;const f=factionHubs[fid],ft=ftype(f.type);
  let h=`<div><b style="color:${ft.c}">${ft.hub}</b> <span class="k">${ft.n}</span> &mdash; ${f.tiles.length} tiles, radius ${f.radius}</div><div style="margin-top:4px">${fmtFacStats(facCoverStats(f.tiles,f.type,fid))}</div>`;
  if(f.type==='legionnaires')h+=`<button class="btn" id="selUpgrade" style="margin-top:6px">Set radius ${f.radius===2?3:2}</button>`;
- h+=`<button class="btn red" id="selDelete">Delete faction hub</button><button class="btn" id="selDeselect">Deselect</button>`;
+ h+=SELHINT;
  document.getElementById('selinfo').innerHTML=h;
- const ub=document.getElementById('selUpgrade');if(ub)ub.onclick=()=>{const nf=factionHubs[fid];nf.radius=nf.radius===2?3:2;drawFaction(fid);showFactionPanel(fid);};
- document.getElementById('selDelete').onclick=deleteSelection;document.getElementById('selDeselect').onclick=clearSelection;}
-function showHubPanel(hid){const h=hubs[hid];const st=coverStats(h.tile,h.type,hid);document.getElementById('selinfo').innerHTML=`<div><b style="color:${htype(h.type).c}">${htype(h.type).n} hub</b></div><div><span class="k">Influence:</span> ${h.infl.length} tiles (r=2)</div>`+`<div style="margin-top:4px">${fmtStats(st)}</div>`+`<button class="btn red" style="margin-top:6px" id="delHubBtn">Delete hub</button>`;document.getElementById('delHubBtn').onclick=()=>{removeHub(hid);clearSelection();};}
+ const ub=document.getElementById('selUpgrade');if(ub)ub.onclick=()=>{const nf=factionHubs[fid];nf.radius=nf.radius===2?3:2;drawFaction(fid);showFactionPanel(fid);};}
+function showHubPanel(hid){const h=hubs[hid];const st=coverStats(h.tile,h.type,hid);document.getElementById('selinfo').innerHTML=`<div><b style="color:${htype(h.type).c}">${htype(h.type).n} hub</b></div><div><span class="k">Influence:</span> ${h.infl.length} tiles (r=2)</div>`+`<div style="margin-top:4px">${fmtStats(st)}</div>`+SELHINT;}
 function renderSelection(){drawMsel();selectedDid=null;selFid=null;if(selId!==null&&DATA.cells[selId]){DATA.cells[selId]._el.classList.remove('sel');selId=null;}document.getElementById('selinfo').innerHTML='<span class="k">Hover or click a tile.</span>';
  if(msel.length===0)return;
  if(msel.length===1){const x=msel[0];if(x.k==='d')showDistrictPanel(x.id);else if(x.k==='f')showFactionPanel(x.id);else showHubPanel(x.id);return;}
  const _ag=aggStats(msel);const _agH=msel.some(x=>x.k==='h'||x.k==='f')?`<div style="font-size:12px;line-height:1.5;margin:0 0 7px"><span class="k">Combined coverage:</span> ${_ag.covered} tiles &middot; <b style="color:var(--fg)">${_ag.bld}</b> buildable<br><span class="k">Districts that fit:</span> ${_ag.d9}&times;9-tile (${_ag.l9} left) &middot; ${_ag.d6}&times;6-tile (${_ag.l6} left)</div>`:'';
- document.getElementById('selinfo').innerHTML=`<div><b>${msel.length} selected</b></div><div style="color:var(--muted);font-size:12px;margin:2px 0 6px">${countByKind()}</div>`+_agH+`<button class="btn red" id="delSelBtn">Delete selected (${msel.length})</button><button class="btn" id="clrSelBtn">Clear selection</button>`;
- document.getElementById('delSelBtn').onclick=deleteSelection;document.getElementById('clrSelBtn').onclick=clearSelection;}
+ document.getElementById('selinfo').innerHTML=`<div><b>${msel.length} selected</b></div><div style="color:var(--muted);font-size:12px;margin:2px 0 6px">${countByKind()}</div>`+_agH+SELHINT;}
 function pickObject(obj,additive){cancelExpand(false);if(additive){const i=mselIndex(obj.k,obj.id);if(i>=0)msel.splice(i,1);else msel.push(obj);}else{msel.length=0;msel.push(obj);}renderSelection();}
+const SELHINT='<div style="font-size:11px;color:var(--muted);margin-top:8px"><b>Del</b> removes &middot; <b>right-click</b> deselects</div>';
 function clearSelection(){msel.length=0;renderSelection();}
 function aggStats(items){const cover=new Set();items.forEach(x=>{if(x.k==='h'&&hubs[x.id])hubs[x.id].infl.forEach(t=>cover.add(t));else if(x.k==='f'&&factionHubs[x.id]){const f=factionHubs[x.id];const tri=new Set(f.tiles);facArea(f.tiles,f.radius,f.type).forEach(t=>{if(!tri.has(t))cover.add(t);});}});
  const bset=new Set();cover.forEach(t=>{const cell=DATA.cells[t];if(placeable(cell)&&!occupied(t))bset.add(t);});
