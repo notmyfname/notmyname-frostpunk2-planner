@@ -12,7 +12,7 @@ and icons embedded — no server, no build step, nothing to install.
 Served with GitHub Pages at:
 
 ```
-https://<your-username>.github.io/<repo-name>/
+https://notmyfname.github.io/notmyname-frostpunk2-planner/
 ```
 
 `index.html` redirects to the planner.
