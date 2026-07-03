@@ -7,10 +7,16 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
 #app{display:flex;height:100vh}
 #side{width:314px;min-width:314px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow-y:auto}
+#topbar{position:sticky;top:0;z-index:6;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 3px 7px rgba(0,0,0,0.28)}
 #side h1{font-size:16px;margin:0;padding:16px 16px 2px;letter-spacing:2px}
 #side .sub{color:var(--muted);font-size:12px;padding:0 16px 12px}
 .sec{padding:12px 16px;border-top:1px solid var(--line)}
 .sec h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 10px}
+.sec.col>h2{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sec.col>h2::after{content:'\25BE';font-size:12px;transition:transform .15s;opacity:.8}
+.sec.col.collapsed>h2{margin-bottom:0}
+.sec.col.collapsed>h2::after{transform:rotate(-90deg)}
+.sec.col.collapsed>*:not(h2){display:none!important}
 .legend .row,.toggles label{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0}
 .sw{width:16px;height:16px;border-radius:3px;border:1px solid rgba(255,255,255,.15);flex:none}
 .toggles label{cursor:pointer}.toggles input{accent-color:var(--accent)}
@@ -49,38 +55,28 @@ svg{display:block;cursor:grab}svg.drag{cursor:grabbing}
  <div id="side">
   <h1>CRATER</h1>
   <div class="sub">Notmyname's Frostpunk 2 Planner &middot; <span id="ncells"></span> tiles</div>
+  <div id="topbar">
   <div style="padding:4px 16px 10px"><select id="mapSel" style="width:100%;padding:7px 8px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;font-size:13px"><option value="crater_planner.html" selected>Crater</option></select></div>
   <div class="sec"><h2>Selection</h2><div id="selinfo" class="selinfo"><span class="k">Hover or click a tile.</span></div></div>
-  <div class="sec" data-only="planner"><h2>Districts</h2>
+  </div>
+  <div class="sec col" data-only="planner"><h2>Districts</h2>
    <div class="sizetog"><button id="size6" class="on">6 tiles</button><button id="size9">9 tiles</button></div>
    <div id="dtypes"></div>
    <div id="buildstatus"></div>
    <button class="btn" id="cancelBuild" style="display:none">Cancel current district</button>
-   <div id="distSel" style="display:none;margin-top:9px;padding:9px;background:var(--panel2);border:1px solid var(--line);border-radius:6px">
-    <div id="distSelInfo" style="font-size:12.5px;margin-bottom:4px"></div>
-    <button class="btn" id="expandBtn" style="margin-top:6px">Expand to 9 tiles</button>
-    <button class="btn red" id="deleteBtn">Delete district</button>
-    <button class="btn" id="deselectBtn">Deselect</button>
-   </div>
   </div>
-  <div class="sec" data-only="planner"><h2>Hubs</h2>
+  <div class="sec col" data-only="planner"><h2>Hubs</h2>
    <div id="hubtypes"></div>
    <div id="hubstatus" style="font-size:12.5px;padding:8px 0 0;min-height:16px"></div>
    <div id="hubstats" style="font-size:12px;line-height:1.5;color:var(--muted);padding:4px 0 0"></div>
   </div>
-  <div class="sec" data-only="planner"><h2>Faction hubs</h2>
+  <div class="sec col" data-only="planner"><h2>Faction hubs</h2>
    <div id="factypes"></div>
    <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:8px;color:var(--muted)">Legionnaire radius:
     <button id="leg2" class="on" style="padding:3px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--text);cursor:pointer">2</button>
     <button id="leg3" style="padding:3px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--text);cursor:pointer">3</button></div>
    <div id="facstatus" style="font-size:12.5px;padding:8px 0 0;min-height:16px"></div>
    <button class="btn" id="rotateFac" style="display:none">Rotate footprint (R)</button>
-   <div id="facSel" style="display:none;margin-top:9px;padding:9px;background:var(--panel2);border:1px solid var(--line);border-radius:6px">
-    <div id="facSelInfo" style="font-size:12.5px;margin-bottom:4px"></div>
-    <button class="btn" id="facUpgrade" style="margin-top:6px">Set radius 3</button>
-    <button class="btn red" id="facDelete">Delete faction hub</button>
-    <button class="btn" id="facDeselect">Deselect</button>
-   </div>
   </div>
   <div class="sec toggles"><h2>Layers</h2>
    <label><input type="checkbox" id="tHeat"> Heat (district adjacency)</label>
@@ -91,6 +87,7 @@ svg{display:block;cursor:grab}svg.drag{cursor:grabbing}
    <label><input type="checkbox" id="tBorders" checked> Tile walls</label>
    <label><input type="checkbox" id="tDim"> Dim non-buildable</label>
    <label><input type="checkbox" id="tShowIce"> Show Ice tiles</label>
+   <label><input type="checkbox" id="tMulti"> Multi-select (or hold Ctrl)</label>
   </div>
   <div class="sec legend"><h2>Terrain</h2>
    <div class="row"><span class="sw" style="background:#16c2c2"></span>City area</div>
@@ -128,6 +125,7 @@ svg{display:block;cursor:grab}svg.drag{cursor:grabbing}
    <button class="btn" id="expPlan">Export plan file</button>
    <button class="btn" id="impPlan">Open plan file</button>
    <input type="file" id="impFile" accept=".json,application/json" style="display:none">
+   <button class="btn red" id="resetPlan">Reset plan</button>
   </div>
  </div>
  <div id="mapwrap">
@@ -239,10 +237,48 @@ gCells.addEventListener('click',e=>{const id=e.target.dataset&&e.target.dataset.
  if(activeFaction){factionClick(nid);return;}
  if(expanding!==null){expandClick(nid);return;}
  if(activeType){buildClick(nid);return;}
- if(tileHub[nid]!==undefined){selectHub(tileHub[nid]);return;}
- if(tileFaction[nid]!==undefined){selectFaction(tileFaction[nid]);return;}
- if(tileDist[nid]!==undefined){selectDistrict(tileDist[nid]);return;}
- select(nid);});
+ const _obj=objAt(nid);
+ if(_obj){pickObject(_obj,multiMode||e.ctrlKey||e.metaKey);return;}
+ if(multiMode||e.ctrlKey||e.metaKey)return;
+ clearSelection();select(nid);});
+// ---------- multi-selection of placed objects ----------
+let multiMode=false;const msel=[];
+const gSelHi=document.createElementNS(NS,'g');svg.appendChild(gSelHi);
+function objAt(nid){if(tileHub[nid]!==undefined)return{k:'h',id:tileHub[nid]};if(tileFaction[nid]!==undefined)return{k:'f',id:tileFaction[nid]};if(tileDist[nid]!==undefined)return{k:'d',id:tileDist[nid]};return null;}
+function mselIndex(k,id){return msel.findIndex(x=>x.k===k&&x.id===id);}
+function selTiles(x){if(x.k==='d')return districts[x.id]&&districts[x.id].tiles;if(x.k==='f')return factionHubs[x.id]&&factionHubs[x.id].tiles;return hubs[x.id]?[hubs[x.id].tile]:null;}
+function drawMsel(){while(gSelHi.firstChild)gSelHi.removeChild(gSelHi.firstChild);msel.forEach(x=>{const tiles=selTiles(x);if(!tiles)return;let path='';perimeter(tiles).forEach(([a,b])=>{path+=`M${V[a][0]},${V[a][1]}L${V[b][0]},${V[b][1]}`;});const pt=document.createElementNS(NS,'path');pt.setAttribute('d',path);pt.setAttribute('fill','none');pt.setAttribute('stroke','#ffd24a');pt.setAttribute('stroke-width','3.6');pt.setAttribute('stroke-linejoin','round');pt.setAttribute('vector-effect','non-scaling-stroke');pt.setAttribute('pointer-events','none');gSelHi.appendChild(pt);});}
+function countByKind(){const c={d:0,h:0,f:0};msel.forEach(x=>c[x.k]++);const parts=[];if(c.d)parts.push(c.d+' district'+(c.d>1?'s':''));if(c.h)parts.push(c.h+' hub'+(c.h>1?'s':''));if(c.f)parts.push(c.f+' faction hub'+(c.f>1?'s':''));return parts.join(', ');}
+function showDistrictPanel(did){selectedDid=did;const d=districts[did];
+ let h=`<div><b style="color:${dtype(d.type).c}">${dtype(d.type).n}</b> district &mdash; ${d.tiles.length} tiles</div>`+(heatOn?`<div>${heatLine(did)}</div>`:'');
+ if(d.tiles.length===6)h+=`<button class="btn" id="selExpand" style="margin-top:6px">Expand to 9 tiles</button>`;
+ h+=`<button class="btn red" id="selDelete">Delete district</button><button class="btn" id="selDeselect">Deselect</button>`;
+ document.getElementById('selinfo').innerHTML=h;
+ const eb=document.getElementById('selExpand');if(eb)eb.onclick=()=>startExpand(did);
+ document.getElementById('selDelete').onclick=deleteSelection;document.getElementById('selDeselect').onclick=clearSelection;}
+function startExpand(did){const d=districts[did];if(!d||d.tiles.length!==6)return;expanding={did:did,added:new Set()};msel.length=0;drawMsel();document.getElementById('selinfo').innerHTML='<span class="k">Expanding &mdash; click adjacent tiles.</span>';updateExpandStatus();}
+function showFactionPanel(fid){selFid=fid;const f=factionHubs[fid],ft=ftype(f.type);
+ let h=`<div><b style="color:${ft.c}">${ft.hub}</b> <span class="k">${ft.n}</span> &mdash; ${f.tiles.length} tiles, radius ${f.radius}</div><div style="margin-top:4px">${fmtFacStats(facCoverStats(f.tiles,f.type,fid))}</div>`;
+ if(f.type==='legionnaires')h+=`<button class="btn" id="selUpgrade" style="margin-top:6px">Set radius ${f.radius===2?3:2}</button>`;
+ h+=`<button class="btn red" id="selDelete">Delete faction hub</button><button class="btn" id="selDeselect">Deselect</button>`;
+ document.getElementById('selinfo').innerHTML=h;
+ const ub=document.getElementById('selUpgrade');if(ub)ub.onclick=()=>{const nf=factionHubs[fid];nf.radius=nf.radius===2?3:2;drawFaction(fid);showFactionPanel(fid);};
+ document.getElementById('selDelete').onclick=deleteSelection;document.getElementById('selDeselect').onclick=clearSelection;}
+function showHubPanel(hid){const h=hubs[hid];const st=coverStats(h.tile,h.type,hid);document.getElementById('selinfo').innerHTML=`<div><b style="color:${htype(h.type).c}">${htype(h.type).n} hub</b></div><div><span class="k">Influence:</span> ${h.infl.length} tiles (r=2)</div>`+`<div style="margin-top:4px">${fmtStats(st)}</div>`+`<button class="btn red" style="margin-top:6px" id="delHubBtn">Delete hub</button>`;document.getElementById('delHubBtn').onclick=()=>{removeHub(hid);clearSelection();};}
+function renderSelection(){drawMsel();selectedDid=null;selFid=null;if(selId!==null&&DATA.cells[selId]){DATA.cells[selId]._el.classList.remove('sel');selId=null;}document.getElementById('selinfo').innerHTML='<span class="k">Hover or click a tile.</span>';
+ if(msel.length===0)return;
+ if(msel.length===1){const x=msel[0];if(x.k==='d')showDistrictPanel(x.id);else if(x.k==='f')showFactionPanel(x.id);else showHubPanel(x.id);return;}
+ const _ag=aggStats(msel);const _agH=msel.some(x=>x.k==='h'||x.k==='f')?`<div style="font-size:12px;line-height:1.5;margin:0 0 7px"><span class="k">Combined coverage:</span> ${_ag.covered} tiles &middot; <b style="color:var(--fg)">${_ag.bld}</b> buildable<br><span class="k">Districts that fit:</span> ${_ag.d9}&times;9-tile (${_ag.l9} left) &middot; ${_ag.d6}&times;6-tile (${_ag.l6} left)</div>`:'';
+ document.getElementById('selinfo').innerHTML=`<div><b>${msel.length} selected</b></div><div style="color:var(--muted);font-size:12px;margin:2px 0 6px">${countByKind()}</div>`+_agH+`<button class="btn red" id="delSelBtn">Delete selected (${msel.length})</button><button class="btn" id="clrSelBtn">Clear selection</button>`;
+ document.getElementById('delSelBtn').onclick=deleteSelection;document.getElementById('clrSelBtn').onclick=clearSelection;}
+function pickObject(obj,additive){cancelExpand(false);if(additive){const i=mselIndex(obj.k,obj.id);if(i>=0)msel.splice(i,1);else msel.push(obj);}else{msel.length=0;msel.push(obj);}renderSelection();}
+function clearSelection(){msel.length=0;renderSelection();}
+function aggStats(items){const cover=new Set();items.forEach(x=>{if(x.k==='h'&&hubs[x.id])hubs[x.id].infl.forEach(t=>cover.add(t));else if(x.k==='f'&&factionHubs[x.id]){const f=factionHubs[x.id];const tri=new Set(f.tiles);facArea(f.tiles,f.radius,f.type).forEach(t=>{if(!tri.has(t))cover.add(t);});}});
+ const bset=new Set();cover.forEach(t=>{const cell=DATA.cells[t];if(placeable(cell)&&!occupied(t))bset.add(t);});
+ const seen=new Set();let d6=0,d9=0;const bld=bset.size;
+ bset.forEach(st=>{if(seen.has(st))return;let comp=0;const fr=[st];seen.add(st);while(fr.length){const t=fr.pop();comp++;DATA.cells[t].nbr.forEach(nb=>{if(bset.has(nb)&&!seen.has(nb)){seen.add(nb);fr.push(nb);}});}d6+=Math.floor(comp/6);d9+=Math.floor(comp/9);});
+ return {covered:cover.size,bld,d6,l6:bld-d6*6,d9,l9:bld-d9*9};}
+function deleteSelection(){msel.slice().forEach(x=>{if(x.k==='d')removeDistrict(x.id);else if(x.k==='f')removeFaction(x.id);else removeHub(x.id);});msel.length=0;renderSelection();}
 // ---------- DISTRICTS ----------
 function edgeKey(a,b){return a<b?a+'_'+b:b+'_'+a;}
 function perimeter(tiles){const cnt={};
@@ -285,21 +321,21 @@ function expandClick(nid){const d=districts[expanding.did];const cell=DATA.cells
  if(tileDist[nid]!==undefined){msg('That tile is already in a district.');return;}
  if(!d.tiles.some(t=>DATA.cells[t].nbr.includes(nid))){msg('Must be adjacent to the district.');return;}
  d.tiles.push(nid);tileDist[nid]=expanding.did;expanding.added.add(nid);drawDistrict(expanding.did);
- if(d.tiles.length>=9){const did=expanding.did;expanding=null;updateBuildStatus();selectDistrict(did);}
+ if(d.tiles.length>=9){const did=expanding.did;expanding=null;updateBuildStatus();msel.length=0;msel.push({k:'d',id:did});renderSelection();}
  else updateExpandStatus();}
 function updateExpandStatus(){const d=districts[expanding.did];
  document.getElementById('buildstatus').innerHTML=`Expanding <b style="color:${dtype(d.type).c}">${dtype(d.type).n}</b> &mdash; ${d.tiles.length}/9 tiles`;
  document.getElementById('cancelBuild').style.display='';}
 function cancelExpand(reselect){if(!expanding)return;const d=districts[expanding.did];
  expanding.added.forEach(t=>{const i=d.tiles.indexOf(t);if(i>=0)d.tiles.splice(i,1);delete tileDist[t];});
- drawDistrict(expanding.did);const did=expanding.did;expanding=null;if(reselect)selectDistrict(did);}
+ drawDistrict(expanding.did);const did=expanding.did;expanding=null;if(reselect){msel.length=0;msel.push({k:'d',id:did});renderSelection();}}
 function selectDistrict(did){deselectDistrict();if(building){clearAllBuild();building=null;}
  selectedDid=did;const d=districts[did];if(d._bp)d._bp.setAttribute('stroke','#ffd24a');
  document.getElementById('distSel').style.display='';
  document.getElementById('distSelInfo').innerHTML=`<b style="color:${dtype(d.type).c}">${dtype(d.type).n}</b> district &mdash; ${d.tiles.length} tiles`+(heatOn?`<br>${heatLine(did)}`:'');
  document.getElementById('expandBtn').style.display=(d.tiles.length===6)?'':'none';
  activeType=null;document.querySelectorAll('#dtypes .dchip').forEach(x=>x.classList.remove('active'));updateBuildStatus();}
-function deselectDistrict(){if(selectedDid!==null&&districts[selectedDid]&&districts[selectedDid]._bp)districts[selectedDid]._bp.setAttribute('stroke','#0b0e13');selectedDid=null;document.getElementById('distSel').style.display='none';}
+function deselectDistrict(){selectedDid=null;}
 let msgT=null;
 function msg(t){const el=document.getElementById('buildstatus');el.dataset.msg='1';el.innerHTML=`<span style="color:#ffb454">${t}</span>`;
  clearTimeout(msgT);msgT=setTimeout(()=>{el.dataset.msg='';if(expanding)updateExpandStatus();else updateBuildStatus();},1600);}
@@ -313,7 +349,7 @@ const dtWrap=document.getElementById('dtypes');
 DTYPES.forEach(d=>{const b=document.createElement('div');b.className='dchip';b.dataset.t=d.id;
  b.innerHTML=`<span class="dsw" style="background:${d.c}"></span>${d.n} District<span class="count" data-dc="${d.id}"></span>`;
  b.onclick=()=>selectType(d.id,b);dtWrap.appendChild(b);});
-function selectType(id,b){setMark(null);setCityMode(false);cancelExpand(false);deselectDistrict();if(activeHub)selectHubType(activeHub,null);clearFactionMode();
+function selectType(id,b){msel.length=0;drawMsel();setMark(null);setCityMode(false);cancelExpand(false);deselectDistrict();if(activeHub)selectHubType(activeHub,null);clearFactionMode();
  if(building&&building.type!==id){clearAllBuild();building=null;}
  activeType=activeType===id?null:id;
  document.querySelectorAll('#dtypes .dchip').forEach(x=>x.classList.remove('active'));
@@ -323,11 +359,7 @@ document.getElementById('size9').onclick=()=>setSize(9);
 function setSize(n){districtSize=n;document.getElementById('size6').classList.toggle('on',n===6);document.getElementById('size9').classList.toggle('on',n===9);
  if(building&&building.tiles.length===districtSize)finalizeDistrict();else updateBuildStatus();}
 document.getElementById('cancelBuild').onclick=()=>{if(expanding){cancelExpand(true);updateBuildStatus();return;}clearAllBuild();building=null;updateBuildStatus();};
-document.getElementById('deleteBtn').onclick=()=>{if(selectedDid!==null){removeDistrict(selectedDid);deselectDistrict();}};
-document.getElementById('deselectBtn').onclick=deselectDistrict;
-document.getElementById('expandBtn').onclick=()=>{if(selectedDid===null)return;const d=districts[selectedDid];if(d.tiles.length!==6)return;
- expanding={did:selectedDid,added:new Set()};document.getElementById('distSel').style.display='none';updateExpandStatus();};
-document.getElementById('tHeat').onchange=e=>{heatOn=e.target.checked;if(selectedDid!==null)selectDistrict(selectedDid);};
+document.getElementById('tHeat').onchange=e=>{heatOn=e.target.checked;renderSelection();};
 // ---------- HUBS (single tile, radius-of-influence 2) ----------
 const HUBS=[{id:'stockpile_fuel',n:'Fuel stockpile',icon:'Oil',c:'#8a6d3b'},{id:'stockpile_materials',n:'Materials stockpile',icon:'Materials',c:'#b07d3a'},{id:'stockpile_goods',n:'Goods stockpile',icon:'Goods',c:'#c9a24b'},{id:'stockpile_food',n:'Food stockpile',icon:'Food',c:'#6a9a4a'},{id:'communication',n:'Communication',c:'#e0603b'},{id:'surveillance',n:'Surveillance',c:'#9b59b6'},
  {id:'medical',n:'Emergency medical',c:'#e74c6c'},{id:'airtransport',n:'Air transport',c:'#3a9fd6'},{id:'maintenance',n:'Maintenance',c:'#7f8c99'},
@@ -397,7 +429,7 @@ function selectHub(hid){const h=hubs[hid];select(h.tile);
  document.getElementById('selinfo').innerHTML=`<div><b style="color:${htype(h.type).c}">${htype(h.type).n} hub</b></div><div><span class="k">Influence:</span> ${h.infl.length} tiles (r=2)</div>`+
   `<div style="margin-top:4px">${fmtStats(st)}</div>`+
   `<button class="btn red" style="margin-top:6px" onclick="removeHub(${hid})">Delete hub</button>`;}
-function selectHubType(id,b){setMark(null);setCityMode(false);clearPreview();clearFactionMode();if(activeHub===id){activeHub=null;}else{activeHub=id;activeType=null;deselectDistrict();cancelExpand(false);
+function selectHubType(id,b){msel.length=0;drawMsel();setMark(null);setCityMode(false);clearPreview();clearFactionMode();if(activeHub===id){activeHub=null;}else{activeHub=id;activeType=null;deselectDistrict();cancelExpand(false);
   document.querySelectorAll('#dtypes .dchip').forEach(x=>x.classList.remove('active'));}
  document.querySelectorAll('#hubtypes .dchip').forEach(x=>x.classList.remove('active'));
  if(activeHub&&b)b.classList.add('active');
@@ -430,7 +462,7 @@ function drawFaction(fid){const f=factionHubs[fid];if(f._g)f._g.remove();const c
  full.forEach(id=>facFill(id,col,'0.14',g));
  const io=document.createElementNS(NS,'path');io.setAttribute('d',segPath(full));io.setAttribute('fill','none');io.setAttribute('stroke',col);io.setAttribute('stroke-width','2');io.setAttribute('stroke-dasharray','5 4');io.setAttribute('vector-effect','non-scaling-stroke');io.setAttribute('pointer-events','none');g.appendChild(io);
  f.tiles.forEach(id=>facFill(id,col,'0.55',g));
- const bo=document.createElementNS(NS,'path');bo.setAttribute('d',segPath(f.tiles));bo.setAttribute('fill','none');bo.setAttribute('stroke',fid===selFid?'#ffd24a':'#0b0e13');bo.setAttribute('stroke-width','3.4');bo.setAttribute('stroke-linejoin','round');bo.setAttribute('vector-effect','non-scaling-stroke');bo.setAttribute('pointer-events','none');g.appendChild(bo);
+ const bo=document.createElementNS(NS,'path');bo.setAttribute('d',segPath(f.tiles));bo.setAttribute('fill','none');bo.setAttribute('stroke','#0b0e13');bo.setAttribute('stroke-width','3.4');bo.setAttribute('stroke-linejoin','round');bo.setAttribute('vector-effect','non-scaling-stroke');bo.setAttribute('pointer-events','none');g.appendChild(bo);
  let fcx=0,fcy=0;f.tiles.forEach(id=>{fcx+=DATA.cells[id].c[0];fcy+=DATA.cells[id].c[1];});fcx/=f.tiles.length;fcy/=f.tiles.length;
  const fb=bbox(DATA.cells[f.tiles[0]]);const fr=Math.min(fb[2]-fb[0],fb[3]-fb[1])*0.5;iconBadge(fcx,fcy,fr,col,'faction_'+f.type,g);
  gFac.appendChild(g);f._g=g;}
@@ -465,7 +497,7 @@ function updateFacStatus(){const el=document.getElementById('facstatus');if(el.d
  document.getElementById('rotateFac').style.display=activeFaction?'':'none';
  el.innerHTML=activeFaction?`<b style="color:${ftype(activeFaction).c}">${ftype(activeFaction).hub}</b> <span style="color:var(--muted);font-size:11px">${ftype(activeFaction).n}</span>`:'';}
 function updateFacSummary(){const c={};Object.values(factionHubs).forEach(f=>c[f.type]=(c[f.type]||0)+1);document.querySelectorAll('[data-fc]').forEach(el=>el.textContent=c[el.dataset.fc]||'');}
-function selectFactionType(id,b){setMark(null);setCityMode(false);cancelExpand(false);deselectDistrict();if(activeType){activeType=null;document.querySelectorAll('#dtypes .dchip').forEach(x=>x.classList.remove('active'));}
+function selectFactionType(id,b){msel.length=0;drawMsel();setMark(null);setCityMode(false);cancelExpand(false);deselectDistrict();if(activeType){activeType=null;document.querySelectorAll('#dtypes .dchip').forEach(x=>x.classList.remove('active'));}
  if(activeHub){activeHub=null;document.querySelectorAll('#hubtypes .dchip').forEach(x=>x.classList.remove('active'));document.getElementById('hubstatus').innerHTML='';}
  clearPreview();cancelBuildingF();deselectFaction();updateBuildStatus();
  activeFaction=activeFaction===id?null:id;
@@ -482,14 +514,11 @@ FACTIONS.forEach(f=>{const b=document.createElement('div');b.className='dchip';b
  b.onclick=()=>selectFactionType(f.id,b);facWrap.appendChild(b);});
 function setLeg(n){legRadius=n;document.getElementById('leg2').classList.toggle('on',n===2);document.getElementById('leg3').classList.toggle('on',n===3);
  Object.keys(factionHubs).forEach(fid=>{const f=factionHubs[fid];if(f.type==='legionnaires'){f.radius=n;drawFaction(fid);}});
- if(selFid!==null&&factionHubs[selFid]&&factionHubs[selFid].type==='legionnaires')selectFaction(selFid);}
+ renderSelection();}
 document.getElementById('leg2').onclick=()=>setLeg(2);
 document.getElementById('leg3').onclick=()=>setLeg(3);
 document.getElementById('rotateFac').onclick=facRotate;
 window.addEventListener('keydown',e=>{if((e.key==='r'||e.key==='R')&&activeFaction){facRotate();}});
-document.getElementById('facDelete').onclick=()=>{if(selFid!==null){removeFaction(selFid);deselectFaction();}};
-document.getElementById('facDeselect').onclick=deselectFaction;
-document.getElementById('facUpgrade').onclick=()=>{if(selFid===null)return;const f=factionHubs[selFid];if(f.type!=='legionnaires')return;f.radius=f.radius===2?3:2;drawFaction(selFid);selectFaction(selFid);};
 document.getElementById('tFactions').onchange=e=>{gFac.style.display=e.target.checked?'':'none';};
 updateFacStatus();
 function setCityMode(on){cityMode=on;const b=document.getElementById('cityBtn');b.textContent='Edit city tiles: '+(on?'ON':'off');b.classList.toggle('on',on);}
@@ -524,7 +553,7 @@ function tileInfoHTML(id){const cell=DATA.cells[id];
  h+=`<div><span class="k">Buildable:</span> ${placeable(cell)?'yes':'no'}</div>`;
  if(cell.e)h+=`<div><span class="k">Effect:</span> ${cell.e}</div>`;
  h+=`<div><span class="k">Neighbors:</span> ${cell.nbr.length}</div><div><span class="k">Tile #</span>${id}</div>`;return h;}
-function nothingSelected(){return selId===null&&selectedDid===null&&selFid===null;}
+function nothingSelected(){return selId===null&&selectedDid===null&&selFid===null&&msel.length===0;}
 function select(id){if(selId!==null&&DATA.cells[selId])DATA.cells[selId]._el.classList.remove('sel');
  clearNbr();selId=id;const cell=DATA.cells[id];cell._el.classList.add('sel');
  document.getElementById('selinfo').innerHTML=tileInfoHTML(id);}
@@ -567,6 +596,9 @@ function loadPlan(o){if(!o||typeof o!=='object'){alert('That file is not a valid
   (o.factions||[]).forEach(f=>{if(!ftype(f.type)||!Array.isArray(f.tiles)||!f.tiles.every(validId))return;const fid=nextFid++;factionHubs[fid]={type:f.type,tiles:f.tiles.slice(),radius:(f.radius===2||f.radius===3||f.radius===1)?f.radius:ftype(f.type).r};f.tiles.forEach(t=>tileFaction[t]=fid);drawFaction(fid);});updateFacSummary();
   msg('Plan loaded.');
  }catch(err){alert('Could not load that plan: '+err.message);}}
+document.getElementById('tMulti').onchange=e=>{multiMode=e.target.checked;};
+if(document.getElementById('resetPlan'))document.getElementById('resetPlan').onclick=()=>{if(confirm('Clear the entire plan? This removes all districts, hubs, faction hubs and city-tile changes.')){clearPlan();renderSelection();}};
+window.addEventListener('keydown',e=>{if(e.key==='Delete'||e.key==='Backspace'){if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;if(msel.length){e.preventDefault();deleteSelection();}}});
 function exportImage(){clearPreview();
  const clone=svg.cloneNode(true);clone.setAttribute('width',DATA.W);clone.setAttribute('height',DATA.H);clone.setAttribute('viewBox',`0 0 ${DATA.W} ${DATA.H}`);
  const bg=document.createElementNS(NS,'rect');bg.setAttribute('x',0);bg.setAttribute('y',0);bg.setAttribute('width',DATA.W);bg.setAttribute('height',DATA.H);bg.setAttribute('fill','#12161c');clone.insertBefore(bg,clone.firstChild);
@@ -614,7 +646,7 @@ function unselectAll(){
  if(activeHub){activeHub=null;document.querySelectorAll('#hubtypes .dchip').forEach(x=>x.classList.remove('active'));document.getElementById('hubstatus').innerHTML='';}
  clearFactionMode();setCityMode(false);deselectDistrict();deselectFaction();clearPreview();
  if(selId!==null&&DATA.cells[selId]){DATA.cells[selId]._el.classList.remove('sel');clearNbr();selId=null;document.getElementById('selinfo').innerHTML='<span class="k">Hover or click a tile.</span>';}
- updateBuildStatus();}
+ msel.length=0;drawMsel();updateBuildStatus();}
 svg.addEventListener('contextmenu',e=>{e.preventDefault();unselectAll();});
 svg.addEventListener('mousedown',e=>{if(e.target.dataset.id!==undefined&&(activeType||expanding||activeHub||activeFaction||buildingF||cityMode||markMode||(editMode&&editPaint)))return;drag={x:e.clientX,y:e.clientY,sl:mapscroll.scrollLeft,st:mapscroll.scrollTop};svg.classList.add('drag');e.preventDefault();});
 window.addEventListener('mousemove',e=>{if(!drag)return;mapscroll.scrollLeft=drag.sl-(e.clientX-drag.x);mapscroll.scrollTop=drag.st-(e.clientY-drag.y);});
@@ -624,5 +656,6 @@ document.getElementById('zin').onclick=()=>{const c=zc();zoomTo(scale*1.25,c[0],
 document.getElementById('zout').onclick=()=>{const c=zc();zoomTo(scale*0.8,c[0],c[1]);};
 document.getElementById('zfit').onclick=fit;
 document.getElementById('mapSel').onchange=e=>{if(e.target.value)location.href=e.target.value;};
+document.querySelectorAll('.sec.col>h2').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('collapsed')));
 window.addEventListener('resize',fit);setTimeout(fit,30);
 </script></body></html>

@@ -9,13 +9,9 @@ and icons embedded — no server, no build step, nothing to install.
 
 ## Use it online
 
-Served with GitHub Pages at:
+**[Open the planner →](https://notmyfname.github.io/notmyname-frostpunk2-planner/)**
 
-```
-https://notmyfname.github.io/notmyname-frostpunk2-planner/
-```
-
-`index.html` redirects to the planner.
+(`index.html` redirects to the planner.)
 
 ## Use it locally
 
